@@ -11,6 +11,8 @@ const runOperation = require('./creates/runOperation');
 const findWorkEmail = require('./creates/findWorkEmail');
 const verifyEmail = require('./creates/verifyEmail');
 const enrichCompany = require('./creates/enrichCompany');
+const findPhone = require('./creates/findPhone');
+const searchGoogle = require('./creates/searchGoogle');
 
 module.exports = {
   version: require('./package.json').version,
@@ -31,5 +33,7 @@ module.exports = {
     [findWorkEmail.key]: findWorkEmail,
     [verifyEmail.key]: verifyEmail,
     [enrichCompany.key]: enrichCompany,
+    [findPhone.key]: findPhone,
+    [searchGoogle.key]: searchGoogle,
   },
 };

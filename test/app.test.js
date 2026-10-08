@@ -241,6 +241,86 @@ test('Enrich Company runs job:company.enrich with a domain or a name', async () 
   );
 });
 
+test('Find Phone Number runs job:people.phone.find and lifts the normalized phone', async () => {
+  let sent;
+  nock(API)
+    .post('/v1/runs', (body) => {
+      sent = body;
+      return true;
+    })
+    .reply(201, {
+      runId: 'run_8',
+      status: 'completed',
+      actualCost: 0.00483,
+      normalized: { job: 'people.phone.find', fields: { phone: '+14155550100' } },
+    });
+  const run = await appTester(App.creates.find_phone.operation.perform, {
+    authData,
+    meta: bundleMeta,
+    inputData: { linkedin_url: 'https://www.linkedin.com/in/jane-doe', first_name: '', email: '' },
+  });
+  assert.equal(sent.endpointId, 'job:people.phone.find');
+  assert.deepEqual(sent.input, { linkedin_url: 'https://www.linkedin.com/in/jane-doe' });
+  assert.equal(sent.fallback, true);
+  assert.equal(run.phone, '+14155550100');
+});
+
+test('Find Phone Number gives a null phone without a normalized block and needs a person', async () => {
+  nock(API).post('/v1/runs').reply(201, { runId: 'run_9', status: 'completed', result: {} });
+  const run = await appTester(App.creates.find_phone.operation.perform, {
+    authData,
+    inputData: { full_name: 'Jane Doe', domain: 'example.com' },
+  });
+  assert.equal(run.phone, null);
+  await assert.rejects(
+    appTester(App.creates.find_phone.operation.perform, { authData, inputData: { domain: 'example.com' } }),
+    /LinkedIn URL, a work email, or a name/,
+  );
+});
+
+test('Search Google runs job:google.serp.organic with the query and keeps the raw result', async () => {
+  let sent;
+  nock(API)
+    .post('/v1/runs', (body) => {
+      sent = body;
+      return true;
+    })
+    .reply(201, {
+      runId: 'run_10',
+      status: 'completed',
+      actualCost: 0.0009,
+      result: { organic: [{ position: 1, title: 'Example', link: 'https://example.com' }] },
+    });
+  const run = await appTester(App.creates.search_google.operation.perform, {
+    authData,
+    meta: bundleMeta,
+    inputData: { query: '  best crm for startups ', country: '' },
+  });
+  assert.equal(sent.endpointId, 'job:google.serp.organic');
+  assert.deepEqual(sent.input, { query: 'best crm for startups' });
+  assert.equal(run.query, 'best crm for startups');
+  assert.equal(run.result.organic[0].link, 'https://example.com');
+});
+
+test('Search Google sends the country when given and refuses an empty query', async () => {
+  let sent;
+  nock(API)
+    .post('/v1/runs', (body) => {
+      sent = body;
+      return true;
+    })
+    .reply(201, { runId: 'run_11', status: 'completed', result: {} });
+  await appTester(App.creates.search_google.operation.perform, {
+    authData,
+    inputData: { query: 'coffee', country: 'us' },
+  });
+  assert.deepEqual(sent.input, { query: 'coffee', country: 'us' });
+  await assert.rejects(
+    appTester(App.creates.search_google.operation.perform, { authData, inputData: { query: '   ' } }),
+    /Give a search query/,
+  );
+});
+
 test('Find Run reads GET /v1/runs/{id} and returns nothing on 404', async () => {
   nock(API).get('/v1/runs/run_8').reply(200, { runId: 'run_8', status: 'completed', actualCost: 0.002 });
   const found = await appTester(App.searches.get_run.operation.perform, { authData, inputData: { run_id: 'run_8' } });

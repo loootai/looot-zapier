@@ -5,8 +5,8 @@
 [![License](https://img.shields.io/github/license/loootai/looot-zapier)](LICENSE) [![Docs](https://img.shields.io/badge/docs-docs.looot.ai-12A06A)](https://docs.looot.ai)
 
 A Zapier Platform CLI app for [looot](https://looot.ai): one key and one prepaid balance for 2,500+ data
-endpoints from 90+ providers. A Zap can find a work email, verify it, enrich a company, or run any other
-endpoint in the catalog. You see the price before a run and a failed call costs nothing.
+endpoints from 90+ providers. A Zap can find a work email, verify it, find a phone number, enrich a company, search Google, or run any
+other endpoint in the catalog. You see the price before a run and a failed call costs nothing.
 
 Status: source only. Not pushed to Zapier and not in the Zapier app directory yet. The steps to deploy your
 own private copy are below.
@@ -18,6 +18,8 @@ own private copy are below.
 | Action | Find Work Email | `POST /v1/runs` with `job:people.email.find` | from $0.003598 per call |
 | Action | Verify Email | `POST /v1/runs` with `job:people.email.verify` | from $0.00145 per call |
 | Action | Enrich Company | `POST /v1/runs` with `job:company.enrich` | from $0.0019 per call |
+| Action | Find Phone Number | `POST /v1/runs` with `job:people.phone.find` | from $0.00483 per call |
+| Action | Search Google | `POST /v1/runs` with `job:google.serp.organic` | from $0.0009 per call |
 | Action | Run Operation | `POST /v1/runs` with any endpoint or `job:<id>` | the endpoint's price |
 | Search | Find Operations in Catalog | `GET /v1/catalog/search?q=` | free |
 | Search | Find Operation Details | `GET /v1/operations/{endpointId}` | free |
@@ -25,7 +27,7 @@ own private copy are below.
 | Trigger | Run Finished | `GET /v1/runs?limit=50`, polled | free |
 
 Prices are the cheapest provider of each job in the public catalog
-(`GET https://api.looot.ai/v1/catalog/overview?depth=jobs`) on 2026-10-08. They change; Find Operations in
+(`GET https://api.looot.ai/v1/catalog/overview?depth=jobs`) on 2026-10-08 (the phone and Google rows on 2026-10-09). They change; Find Operations in
 Catalog returns the live price.
 
 Zapier's naming rules want every search to start with "Find", so the catalog search, the inspect call and
@@ -50,7 +52,8 @@ the run lookup carry those names. Their keys in code are `search_catalog`, `insp
   (looot's [normalized output](https://docs.looot.ai/concepts/normalized-output) when the provider has a
   field map). Find Work Email also returns `email` and `check` at the top level, Verify Email returns
   `email_status` and `deliverable`, Enrich Company returns `company_name`, `company_domain`, `industry`
-  and `size`. These are `null` when the provider that answered has no field map; the raw `result` is
+  and `size`, Find Phone Number returns `phone`. Search Google has no field map: the results page is in
+  `result`, in the shape of the provider that answered. These are `null` when the provider that answered has no field map; the raw `result` is
   always there.
 - **Errors.** A run that ends `failed`, `blocked` or `stopped` fails the step with looot's own error code
   and message. HTTP 402 names the top-up page. HTTP 429 asks Zapier to retry after the `Retry-After` time.
@@ -70,21 +73,22 @@ sends `Authorization: Bearer <token>` to `https://api.looot.ai`. The connection 
 
 ```bash
 npm ci --ignore-scripts
-npm test            # 21 tests, HTTP mocked with nock, no looot account needed
+npm test            # 25 tests, HTTP mocked with nock, no looot account needed
 npm run validate    # the schema check `zapier validate` runs, through zapier-platform-core
 ```
 
-Output on 2026-10-08, Node 24.18.0:
+Output on 2026-10-09, Node 24.18.0:
 
 ```
-ℹ tests 21
-ℹ pass 21
+ℹ tests 25
+ℹ pass 25
 ℹ fail 0
 
-schema valid: 1 trigger, 3 searches, 4 creates, platform 19.1.0
+schema valid: 1 trigger, 3 searches, 6 creates, platform 19.1.0
 ```
 
-`zapier validate` from zapier-platform-cli 19.1.0 also runs without a login:
+`zapier validate` from zapier-platform-cli 19.1.0 also runs without a login. This output is from 0.1.0,
+before Find Phone Number and Search Google were added; run it again before `zapier push`:
 
 ```
 Validating project locally
@@ -105,6 +109,10 @@ The 5 warnings, none of which blocks a push:
 - D003: no connection label. The balance route returns no short account name to show.
 - D027: core 19.2.0 exists. It was published on 2026-10-07 and this repo only pins releases older than
   7 days. Bump it after 2026-10-14.
+
+Find Phone Number and Search Google (added in 0.1.1) were tested with mocked HTTP only. Their job ids
+are in the public catalog; the input names (`linkedin_url`, `email`, name and company for phone, `query`
+and `country` for Google) follow the looot docs and have not been through a paid run from Zapier.
 
 No test calls the live API, so no test spends credit. The first live run happens in the Zap editor with
 your own token.
@@ -136,7 +144,7 @@ Zapier's publishing requirements, read on 2026-10-08
 3. Every trigger, action and search has a turned-on test Zap with one successful run (rule 5.3).
 4. Listing description, written to rule 6.2: "looot is a data API platform that gives a workflow one key
    and one prepaid balance for work emails, email verification, company data and web search results."
-5. `zapier promote 0.1.0`, then submit the version for review in the Zapier developer dashboard.
+5. `zapier promote 0.1.1`, then submit the version for review in the Zapier developer dashboard.
 
 ## Develop
 

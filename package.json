@@ -1,8 +1,8 @@
 {
   "name": "looot-zapier",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
-  "description": "looot for Zapier: search, inspect and run 2,500+ data endpoints (work emails, email verification, company data) from a Zap with one key and one prepaid balance.",
+  "description": "looot for Zapier: search, inspect and run 2,500+ data endpoints (work emails, phone numbers, email verification, company data, Google results) from a Zap with one key and one prepaid balance.",
   "license": "MIT",
   "homepage": "https://looot.ai",
   "author": { "name": "looot", "url": "https://looot.ai" },
