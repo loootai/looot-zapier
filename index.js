@@ -8,6 +8,8 @@ const searchCatalog = require('./searches/searchCatalog');
 const inspectOperation = require('./searches/inspectOperation');
 const getRun = require('./searches/getRun');
 const runOperation = require('./creates/runOperation');
+const runEndpoint = require('./creates/runEndpoint');
+const checkBalance = require('./creates/checkBalance');
 const findWorkEmail = require('./creates/findWorkEmail');
 const verifyEmail = require('./creates/verifyEmail');
 const enrichCompany = require('./creates/enrichCompany');
@@ -30,6 +32,8 @@ module.exports = {
   },
   creates: {
     [runOperation.key]: runOperation,
+    [runEndpoint.key]: runEndpoint,
+    [checkBalance.key]: checkBalance,
     [findWorkEmail.key]: findWorkEmail,
     [verifyEmail.key]: verifyEmail,
     [enrichCompany.key]: enrichCompany,
