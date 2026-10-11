@@ -12,7 +12,8 @@ const perform = async (z, bundle) => {
     maxPriceMicros: bundle.inputData.max_price_usd ? Math.round(Number(bundle.inputData.max_price_usd) * 1e6) : undefined,
   });
   const response = await z.request({ url: `${BASE_URL}/v1/catalog/search`, params });
-  const items = (response.data && response.data.items) || [];
+  // The API answers { endpoints: [...] }. Older docs said items, so both are read.
+  const items = (response.data && (response.data.endpoints || response.data.items)) || [];
   return items.map((item) => ({ id: item.endpointId, ...item }));
 };
 

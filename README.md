@@ -21,6 +21,8 @@ own private copy are below.
 | Action | Find Phone Number | `POST /v1/runs` with `job:people.phone.find` | from $0.00483 per call |
 | Action | Search Google | `POST /v1/runs` with `job:google.serp.organic` | from $0.0009 per call |
 | Action | Run Operation | `POST /v1/runs` with any endpoint or `job:<id>` | the endpoint's price |
+| Action | Run Endpoint | `GET /v1/operations/{id}`, then `POST /v1/runs` | the endpoint's price, only on success |
+| Action | Check Balance | `GET /v1/balance` | free |
 | Search | Find Operations in Catalog | `GET /v1/catalog/search?q=` | free |
 | Search | Find Operation Details | `GET /v1/operations/{endpointId}` | free |
 | Search | Find Run | `GET /v1/runs/{runId}` | free |
@@ -58,6 +60,27 @@ the run lookup carry those names. Their keys in code are `search_catalog`, `insp
 - **Errors.** A run that ends `failed`, `blocked` or `stopped` fails the step with looot's own error code
   and message. HTTP 402 names the top-up page. HTTP 429 asks Zapier to retry after the `Retry-After` time.
 
+### Run Endpoint: pick an endpoint, get its fields
+
+Run Operation takes an endpoint ID and a JSON object. Run Endpoint does the same job without typing either:
+
+1. Type a few words in Search Words, for example `find work email`. Leave it empty to browse.
+2. Pick an endpoint in Endpoint. The price per call shows next to each name. The list shows endpoints that can run now and pages through the catalog.
+3. The endpoint's own input fields appear below it. Zapier builds them from `GET /v1/operations/{id}`. Required fields come first. Fixed lists become dropdowns, arrays become list fields, objects take a JSON object. A field named like one of the action's own fields (`fallback`, `wait`, `input` and so on) gets an `input_` prefix, and the action strips it before the call.
+4. Input (JSON) is optional. Use it for a `job:` ID, or for an endpoint that publishes no fields. Values there win over the fields.
+
+Try Other Providers, Max Cost (USD), Wait (Seconds) and Idempotency Key work as in every run action. A run that
+fails raises an error that names the field looot complains about. Nothing is charged for a failed run. The same
+Idempotency Key rule applies: the default key hashes the Zap, the endpoint, the input and the UTC date, so a
+retried step replays the same run and pays once, and the same lookup on a later day runs fresh.
+
+Errors from every action: 401 asks to reconnect, 402 names the top-up page and says nothing was charged, 403 names
+the four scopes, 409 says the Idempotency Key was used with a different input, 400 adds `Check the "<field>" field`
+when looot names the field, 5xx asks to try again, 429 throttles.
+
+Find Operation Details accepts a `job:` ID. `GET /v1/operations/job:...` answers 404, so for a job it lists the
+endpoints behind it from the catalog search.
+
 The Run Finished trigger reads the 50 newest runs of the workspace and keeps the ones whose status is
 `completed`, `failed`, `blocked` or `stopped`. Rows are summaries without the result payload; add Find Run
 to read the result.
@@ -73,22 +96,23 @@ sends `Authorization: Bearer <token>` to `https://api.looot.ai`. The connection 
 
 ```bash
 npm ci --ignore-scripts
-npm test            # 25 tests, HTTP mocked with nock, no looot account needed
+npm test            # 40 tests, HTTP mocked with nock, no looot account needed
+LOOOT_API_KEY=... npm run smoke   # optional, live, read only, never starts a run
 npm run validate    # the schema check `zapier validate` runs, through zapier-platform-core
 ```
 
 Output on 2026-10-09, Node 24.18.0:
 
 ```
-ℹ tests 25
-ℹ pass 25
+ℹ tests 40
+ℹ pass 40
 ℹ fail 0
 
-schema valid: 1 trigger, 3 searches, 6 creates, platform 19.1.0
+schema valid: 1 trigger, 3 searches, 8 creates, platform 19.1.0
 ```
 
 `zapier validate` from zapier-platform-cli 19.1.0 also runs without a login. This output is from 0.1.0,
-before Find Phone Number and Search Google were added; run it again before `zapier push`:
+before later actions were added; run it again before `zapier push`:
 
 ```
 Validating project locally
@@ -144,7 +168,7 @@ Zapier's publishing requirements, read on 2026-10-08
 3. Every trigger, action and search has a turned-on test Zap with one successful run (rule 5.3).
 4. Listing description, written to rule 6.2: "looot is a data API platform that gives a workflow one key
    and one prepaid balance for work emails, email verification, company data and web search results."
-5. `zapier promote 0.1.1`, then submit the version for review in the Zapier developer dashboard.
+5. `zapier promote 0.2.0`, then submit the version for review in the Zapier developer dashboard.
 
 ## Develop
 

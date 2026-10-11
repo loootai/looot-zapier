@@ -1,6 +1,6 @@
 {
   "name": "looot-zapier",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "looot for Zapier: search, inspect and run 2,500+ data endpoints (work emails, phone numbers, email verification, company data, Google results) from a Zap with one key and one prepaid balance.",
   "license": "MIT",
@@ -10,8 +10,9 @@
   "main": "index.js",
   "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --test test/app.test.js",
-    "validate": "node scripts/validate.js"
+    "test": "node --test test/*.test.js",
+    "validate": "node scripts/validate.js",
+    "smoke": "node scripts/smoke.js"
   },
   "dependencies": {
     "zapier-platform-core": "19.1.0"

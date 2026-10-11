@@ -45,13 +45,18 @@ test('Find Operations in Catalog sends q, limit and filters and gives each row a
   assert.ok(scope.isDone());
 });
 
-test('Find Operation Details encodes a job id in the path and returns nothing on 404', async () => {
-  nock(API).get('/v1/operations/job%3Apeople.email.find').reply(200, { endpointId: 'job:people.email.find' });
+test('Find Operation Details lists the endpoints behind a job id, because /v1/operations answers 404 for a job id', async () => {
+  const scope = nock(API)
+    .get('/v1/catalog/search')
+    .query({ capability: 'people.email.find', limit: '20' })
+    .reply(200, { endpoints: [{ endpointId: 'x', provider: 'p', price: { perCall: 0.01 } }, { endpointId: 'y', price: { perCall: 0.02 } }] });
   const found = await appTester(App.searches.inspect_operation.operation.perform, {
     authData,
     inputData: { endpoint_id: 'job:people.email.find' },
   });
   assert.equal(found[0].id, 'job:people.email.find');
+  assert.equal(found[0].endpointsInJob, 'x, y');
+  assert.ok(scope.isDone());
 
   nock(API).get('/v1/operations/nope').reply(404, { error: { code: 'endpoint_not_found', message: 'not found' } });
   const missing = await appTester(App.searches.inspect_operation.operation.perform, {
