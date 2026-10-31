@@ -69,6 +69,10 @@ Settings, Agent tokens, with `catalog.read`, `runs.read`, `runs.execute` and `us
 sends `Authorization: Bearer <token>` to `https://api.looot.ai`. The connection test calls
 `GET /v1/balance`.
 
+## Zap templates
+
+[templates/](templates) holds 12 Zap template specs for this integration: work emails for new Google Sheets rows, verified Typeform leads into HubSpot, HubSpot company enrichment, phone numbers for Pipedrive people, Calendly meeting briefs in Slack and more. Zapier builds templates in its own editor, so each spec lists the title, the description and every step with its field mappings. They can be submitted once the integration is published.
+
 ## Test
 
 ```bash

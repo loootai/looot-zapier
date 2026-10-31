@@ -10,7 +10,7 @@
   "main": "index.js",
   "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --test test/app.test.js",
+    "test": "node --test test/app.test.js test/templates.test.js",
     "validate": "node scripts/validate.js"
   },
   "dependencies": {
