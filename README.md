@@ -4,8 +4,8 @@
 
 [![License](https://img.shields.io/github/license/loootai/looot-zapier)](LICENSE) [![Docs](https://img.shields.io/badge/docs-docs.looot.ai-12A06A)](https://docs.looot.ai)
 
-A Zapier Platform CLI app for [looot](https://looot.ai): one key and one prepaid balance for 2,500+ data
-endpoints from 90+ providers. A Zap can find a work email, verify it, find a phone number, enrich a company, search Google, or run any
+A Zapier Platform CLI app for [looot](https://looot.ai): one key and one prepaid balance for 4,200+ data
+endpoints from 300+ providers. A Zap can find a work email, verify it, find a phone number, enrich a company, search Google, or run any
 other endpoint in the catalog. You see the price before a run and a failed call costs nothing.
 
 Status: source only. Not pushed to Zapier and not in the Zapier app directory yet. The steps to deploy your
