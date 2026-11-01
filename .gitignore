@@ -3,3 +3,6 @@ build/
 .zapierapprc
 .env
 .DS_Store
+
+# Local zapier publishing kit (account-specific, may hold a token)
+zapier-publishing/
