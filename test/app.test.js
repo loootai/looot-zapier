@@ -186,6 +186,21 @@ test('Find Work Email gives a null email when the run has no normalized block', 
   assert.equal(run.email, null);
 });
 
+test('Find Work Email splits a full name into first_name and last_name, the names the job takes', async () => {
+  let sent;
+  nock(API)
+    .post('/v1/runs', (body) => {
+      sent = body;
+      return true;
+    })
+    .reply(201, { runId: 'run_6', status: 'completed', result: {} });
+  await appTester(App.creates.find_work_email.operation.perform, {
+    authData,
+    inputData: { full_name: '  Grace Brewster Hopper ', domain: 'example.com' },
+  });
+  assert.deepEqual(sent.input, { first_name: 'Grace', last_name: 'Brewster Hopper', domain: 'example.com' });
+});
+
 test('Find Work Email needs a name or a LinkedIn URL', async () => {
   await assert.rejects(
     appTester(App.creates.find_work_email.operation.perform, { authData, inputData: { domain: 'example.com' } }),
